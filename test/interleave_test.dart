@@ -168,23 +168,19 @@ void main() {
       var host = options.getString('host', 'localhost');
 
       // create a connection
-      log.fine("opening connection");
-      var pool = new ConnectionPool(
+            var pool = new ConnectionPool(
           host: host,
           port: port,
           user: user,
           password: password,
           db: db,
           max: 5);
-      log.fine("connection open");
-      // create an example class
+            // create an example class
       var example = new Example(pool);
       // run the example
-      log.fine("running example");
-      await example.run();
+            await example.run();
       // finally, close the connection
-      log.fine("closing");
-      pool.closeConnectionsWhenNotInUse();
+            pool.closeConnectionsWhenNotInUse();
       // not much of a test, is it?
       expect(true, isTrue);
     });

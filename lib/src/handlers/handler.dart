@@ -27,8 +27,7 @@ class HandlerResponse {
 
   bool get hasResult => result != _NO_RESULT;
 
-  HandlerResponse(
-      {this.finished = false, this.nextHandler, this.result = _NO_RESULT});
+  HandlerResponse({this.finished = false, this.nextHandler, this.result = _NO_RESULT});
 
   static final HandlerResponse notFinished = HandlerResponse();
 }
@@ -52,8 +51,7 @@ abstract class Handler {
   /// The default implementation returns a finished [_HandlerResponse] with
   /// a result which is obtained by calling [checkResponse]
   ///
-  HandlerResponse processResponse(Buffer response) =>
-      HandlerResponse(finished: true, result: checkResponse(response));
+  HandlerResponse processResponse(Buffer response) => HandlerResponse(finished: true, result: checkResponse(response));
 
   ///
   /// Parses the response packet to recognise Ok and Error packets.
@@ -61,16 +59,13 @@ abstract class Handler {
   /// a [MySqlException] if it was an Error packet, or returns [:null:]
   /// if the packet has not been handled by this method.
   ///
-  dynamic checkResponse(Buffer response,
-      [bool prepareStmt = false, bool isHandlingRows = false]) {
+  dynamic checkResponse(Buffer response, [bool prepareStmt = false, bool isHandlingRows = false]) {
     if (response[0] == PACKET_OK && !isHandlingRows) {
       if (prepareStmt) {
         var okPacket = PrepareOkPacket(response);
-        log.fine(okPacket.toString());
         return okPacket;
       } else {
         var okPacket = OkPacket(response);
-        log.fine(okPacket.toString());
         return okPacket;
       }
     } else if (response[0] == PACKET_ERROR) {

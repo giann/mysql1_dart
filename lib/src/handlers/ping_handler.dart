@@ -11,7 +11,6 @@ class PingHandler extends Handler {
 
   @override
   Buffer createRequest() {
-    log.finest('Creating buffer for PingHandler');
     var buffer = Buffer(1);
     buffer.writeByte(COM_PING);
     return buffer;

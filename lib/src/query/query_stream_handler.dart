@@ -46,7 +46,6 @@ class QueryStreamHandler extends Handler {
 
   @override
   HandlerResponse processResponse(Buffer response) {
-    log.fine('Processing query response');
     var packet = checkResponse(response, false, _state == STATE_ROW_PACKETS);
     if (packet == null) {
       if (response[0] == PACKET_EOF) {
@@ -79,9 +78,7 @@ class QueryStreamHandler extends Handler {
     _streamController = StreamController<ResultRow>(onCancel: () {
       _streamController!.close();
     });
-    return HandlerResponse(
-        result: ResultsStream(null, null, fieldPackets,
-            stream: _streamController!.stream));
+    return HandlerResponse(result: ResultsStream(null, null, fieldPackets, stream: _streamController!.stream));
   }
 
   HandlerResponse _handleEndOfRows() {
@@ -95,19 +92,16 @@ class QueryStreamHandler extends Handler {
 
   void _handleHeaderPacket(Buffer response) {
     _resultSetHeaderPacket = ResultSetHeaderPacket(response);
-    log.fine(_resultSetHeaderPacket.toString());
     _state = STATE_FIELD_PACKETS;
   }
 
   void _handleFieldPacket(Buffer response) {
     var fieldPacket = Field(response);
-    log.fine(fieldPacket.toString());
     fieldPackets.add(fieldPacket);
   }
 
   void _handleRowPacket(Buffer response) {
     var dataPacket = StandardDataPacket(response, fieldPackets);
-    log.fine(dataPacket.toString());
     _streamController?.add(dataPacket);
   }
 
@@ -121,9 +115,7 @@ class QueryStreamHandler extends Handler {
 
     //TODO is this finished value right?
     return HandlerResponse(
-        finished: finished,
-        result: ResultsStream(
-            _okPacket!.insertId, _okPacket!.affectedRows, fieldPackets));
+        finished: finished, result: ResultsStream(_okPacket!.insertId, _okPacket!.affectedRows, fieldPackets));
   }
 
   @override

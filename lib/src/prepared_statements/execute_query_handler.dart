@@ -167,12 +167,10 @@ class ExecuteQueryHandler extends Handler {
 
   void _writeInt(value, preparedValue, Buffer buffer) {
 //          if (value < 128 && value > -127) {
-//            log.fine("TINYINT: value");
-//            types.add(FIELD_TYPE_TINY);
+//            //            types.add(FIELD_TYPE_TINY);
 //            types.add(0);
 //            values.add(value & 0xFF);
 //          } else {
-    log.fine('LONG: $value');
     buffer.writeByte(value >> 0x00 & 0xFF);
     buffer.writeByte(value >> 0x08 & 0xFF);
     buffer.writeByte(value >> 0x10 & 0xFF);
@@ -189,13 +187,10 @@ class ExecuteQueryHandler extends Handler {
   }
 
   int _measureDouble(double value, dynamic preparedValue) {
-    return Buffer.measureLengthCodedBinary(preparedValue.length) +
-        (preparedValue.length as int);
+    return Buffer.measureLengthCodedBinary(preparedValue.length) + (preparedValue.length as int);
   }
 
   void _writeDouble(value, preparedValue, Buffer buffer) {
-    log.fine('DOUBLE: $value');
-
     buffer.writeLengthCodedBinary(preparedValue.length);
     buffer.writeList(preparedValue);
 
@@ -219,7 +214,6 @@ class ExecuteQueryHandler extends Handler {
 
   void _writeDateTime(value, preparedValue, Buffer buffer) {
     // TODO remove Date eventually
-    log.fine('DATE: $value');
     buffer.writeByte(7);
     buffer.writeByte(value.year >> 0x00 & 0xFF);
     buffer.writeByte(value.year >> 0x08 & 0xFF);
@@ -239,7 +233,6 @@ class ExecuteQueryHandler extends Handler {
   }
 
   void _writeBool(bool value, preparedValue, Buffer buffer) {
-    log.fine('BOOL: $value');
     buffer.writeByte(value ? 1 : 0);
   }
 
@@ -252,7 +245,6 @@ class ExecuteQueryHandler extends Handler {
   }
 
   void _writeList(value, preparedValue, Buffer buffer) {
-    log.fine('LIST: $value');
     buffer.writeLengthCodedBinary(value.length);
     buffer.writeList(value);
   }
@@ -262,12 +254,10 @@ class ExecuteQueryHandler extends Handler {
   }
 
   int _measureBlob(Blob value, preparedValue) {
-    return Buffer.measureLengthCodedBinary(preparedValue.length) +
-        (preparedValue.length as int);
+    return Buffer.measureLengthCodedBinary(preparedValue.length) + (preparedValue.length as int);
   }
 
   void _writeBlob(value, preparedValue, Buffer buffer) {
-    log.fine('BLOB: $value');
     buffer.writeLengthCodedBinary(preparedValue.length);
     buffer.writeList(preparedValue);
   }
@@ -277,12 +267,10 @@ class ExecuteQueryHandler extends Handler {
   }
 
   int _measureString(String value, preparedValue) {
-    return Buffer.measureLengthCodedBinary(preparedValue.length) +
-        (preparedValue.length as int);
+    return Buffer.measureLengthCodedBinary(preparedValue.length) + (preparedValue.length as int);
   }
 
   void _writeString(value, preparedValue, Buffer buffer) {
-    log.fine('STRING: $value');
     buffer.writeLengthCodedBinary(preparedValue.length);
     buffer.writeList(preparedValue);
   }
@@ -337,7 +325,6 @@ class ExecuteQueryHandler extends Handler {
     }
     if (packet == null) {
       if (response[0] == PACKET_EOF) {
-        log.fine('Got an EOF');
         if (_state == STATE_FIELD_PACKETS) {
           return _handleEndOfFields();
         } else if (_state == STATE_ROW_PACKETS) {
@@ -359,10 +346,7 @@ class ExecuteQueryHandler extends Handler {
     } else if (packet is OkPacket) {
       _okPacket = packet;
       if ((packet.serverStatus & SERVER_MORE_RESULTS_EXISTS) == 0) {
-        return HandlerResponse(
-            finished: true,
-            result: ResultsStream(
-                _okPacket.insertId, _okPacket.affectedRows, null));
+        return HandlerResponse(finished: true, result: ResultsStream(_okPacket.insertId, _okPacket.affectedRows, null));
       }
     }
     return HandlerResponse.notFinished;
@@ -374,9 +358,7 @@ class ExecuteQueryHandler extends Handler {
     _streamController!.onCancel = () {
       _cancelled = true;
     };
-    return HandlerResponse(
-        result: ResultsStream(null, null, fieldPackets,
-            stream: _streamController?.stream));
+    return HandlerResponse(result: ResultsStream(null, null, fieldPackets, stream: _streamController?.stream));
   }
 
   HandlerResponse _handleEndOfRows() {
@@ -385,23 +367,17 @@ class ExecuteQueryHandler extends Handler {
   }
 
   void _handleHeaderPacket(Buffer response) {
-    log.fine('Got a header packet');
     final resultSetHeaderPacket = ResultSetHeaderPacket(response);
-    log.fine(resultSetHeaderPacket.toString());
     _state = STATE_FIELD_PACKETS;
   }
 
   void _handleFieldPacket(Buffer response) {
-    log.fine('Got a field packet');
     var fieldPacket = Field(response);
-    log.fine(fieldPacket.toString());
     fieldPackets.add(fieldPacket);
   }
 
   void _handleRowPacket(Buffer response) {
-    log.fine('Got a row packet');
     var dataPacket = BinaryDataPacket(response, fieldPackets);
-    log.fine(dataPacket.toString());
     _streamController?.add(dataPacket);
   }
 }

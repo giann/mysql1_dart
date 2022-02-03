@@ -19,9 +19,7 @@ class BinaryDataPacket extends ResultRow {
 
   BinaryDataPacket(Buffer buffer, List<Field> fieldPackets) {
     buffer.skip(1);
-    var nulls =
-        buffer.readList(((fieldPackets.length + 7 + 2) / 8).floor().toInt());
-    log.fine('Nulls: $nulls');
+    var nulls = buffer.readList(((fieldPackets.length + 7 + 2) / 8).floor().toInt());
 
     var shift = 2;
     var byte = 0;
@@ -38,9 +36,7 @@ class BinaryDataPacket extends ResultRow {
 
     values = List<dynamic>.filled(fieldPackets.length, null);
     for (var i = 0; i < fieldPackets.length; i++) {
-      log.fine('$i: ${fieldPackets[i].name}');
       if (nullMap[i]) {
-        log.fine('Value: null');
         values![i] = null;
         continue;
       }
@@ -54,70 +50,49 @@ class BinaryDataPacket extends ResultRow {
   Object? readField(Field field, Buffer buffer) {
     switch (field.type) {
       case FIELD_TYPE_BLOB:
-        log.fine('BLOB');
         var len = buffer.readLengthCodedBinary();
         if (len == null) {
           return Blob.fromBytes([]);
         }
         var value = Blob.fromBytes(buffer.readList(len));
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_TINY:
-        log.fine('TINY');
         var value = buffer.readByte();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_SHORT:
-        log.fine('SHORT');
         var value = buffer.readInt16();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_INT24:
-        log.fine('INT24');
         var value = buffer.readInt32();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_LONG:
-        log.fine('LONG');
         var value = buffer.readInt32();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_LONGLONG:
-        log.fine('LONGLONG');
         var value = buffer.readInt64();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_NEWDECIMAL:
-        log.fine('NEWDECIMAL');
         var len = buffer.readByte();
         var num = buffer.readString(len);
         var value = double.parse(num);
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_FLOAT:
-        log.fine('FLOAT');
         var value = buffer.readFloat();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_DOUBLE:
-        log.fine('DOUBLE');
         var value = buffer.readDouble();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_BIT:
-        log.fine('BIT');
         var len = buffer.readByte();
         var list = buffer.readList(len);
         var value = 0;
         for (var num in list) {
           value = (value << 8) + num;
         }
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_DATETIME:
       case FIELD_TYPE_DATE:
       case FIELD_TYPE_TIMESTAMP:
-        log.fine('DATE/DATETIME');
         var len = buffer.readByte();
         var date = buffer.readList(len);
         var year = 0;
@@ -137,20 +112,14 @@ class BinaryDataPacket extends ResultRow {
             minutes = date[5];
             seconds = date[6];
             if (date.length > 7) {
-              billionths = date[7] +
-                  (date[8] << 0x08) +
-                  (date[9] << 0x10) +
-                  (date[10] << 0x18);
+              billionths = date[7] + (date[8] << 0x08) + (date[9] << 0x10) + (date[10] << 0x18);
             }
           }
         }
 
-        var value = DateTime.utc(
-            year, month, day, hours, minutes, seconds, billionths ~/ 1000000);
-        log.fine('Value: $value');
+        var value = DateTime.utc(year, month, day, hours, minutes, seconds, billionths ~/ 1000000);
         return value;
       case FIELD_TYPE_TIME:
-        log.fine('TIME');
         var len = buffer.readByte();
         var time = buffer.readList(len);
 
@@ -161,21 +130,14 @@ class BinaryDataPacket extends ResultRow {
         var seconds = 0;
         var billionths = 0;
 
-        log.fine('time: $time');
         if (time.isNotEmpty) {
           sign = time[0] == 1 ? -1 : 1;
-          days = time[1] +
-              (time[2] << 0x08) +
-              (time[3] << 0x10) +
-              (time[4] << 0x18);
+          days = time[1] + (time[2] << 0x08) + (time[3] << 0x10) + (time[4] << 0x18);
           hours = time[5];
           minutes = time[6];
           seconds = time[7];
           if (time.length > 8) {
-            billionths = time[8] +
-                (time[9] << 0x08) +
-                (time[10] << 0x10) +
-                (time[11] << 0x18);
+            billionths = time[8] + (time[9] << 0x08) + (time[10] << 0x10) + (time[11] << 0x18);
           }
         }
         var value = Duration(
@@ -186,30 +148,21 @@ class BinaryDataPacket extends ResultRow {
             milliseconds: (billionths ~/ 1000000) * sign);
         return value;
       case FIELD_TYPE_YEAR:
-        log.fine('YEAR');
         var value = buffer.readInt16();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_STRING:
-        log.fine('STRING');
         var value = buffer.readLengthCodedString();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_VAR_STRING:
-        log.fine('STRING');
         var value = buffer.readLengthCodedString();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_GEOMETRY:
-        log.fine('GEOMETRY - not implemented');
         var len = buffer.readByte();
         //TODO
         var value = buffer.readList(len);
         return value;
       case FIELD_TYPE_JSON:
-        log.fine('Field type  ${field.type}');
         var value = buffer.readLengthCodedString();
-        log.fine('Value: $value');
         return value;
       case FIELD_TYPE_NEWDATE:
       case FIELD_TYPE_DECIMAL:
@@ -221,11 +174,8 @@ class BinaryDataPacket extends ResultRow {
       case FIELD_TYPE_LONG_BLOB:
       case FIELD_TYPE_VARCHAR:
         //Are there any other types a mysql server can return?
-        log.fine('Field type not implemented yet ${field.type}');
-        log.fine(buffer.readList(8).toString());
         break;
       default:
-        log.fine('Unsupported field type ${field.type}');
         break;
     }
     return null;

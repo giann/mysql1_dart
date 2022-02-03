@@ -10,8 +10,7 @@ typedef DoneHandler = Function();
 typedef DataReadyHandler = Function();
 typedef ClosedHandler = Function();
 
-typedef SocketFactory = Function(String host, int port, Duration timeout,
-    {bool isUnixSocket});
+typedef SocketFactory = Function(String host, int port, Duration timeout, {bool isUnixSocket});
 
 class BufferedSocket {
   final Logger log;
@@ -41,11 +40,9 @@ class BufferedSocket {
 
   bool get closed => _closed;
 
-  BufferedSocket._(
-      this._socket, this.onDataReady, this.onDone, this.onError, this.onClosed)
+  BufferedSocket._(this._socket, this.onDataReady, this.onDone, this.onError, this.onClosed)
       : log = Logger('BufferedSocket') {
-    _subscription = _socket.listen(_onData,
-        onError: _onSocketError, onDone: _onSocketDone, cancelOnError: true);
+    _subscription = _socket.listen(_onData, onError: _onSocketError, onDone: _onSocketDone, cancelOnError: true);
   }
 
   void _onSocketError(Object error) {
@@ -61,13 +58,9 @@ class BufferedSocket {
     }
   }
 
-  static Future<RawSocket> defaultSocketFactory(
-      String host, int port, Duration timeout,
-      {bool isUnixSocket = false}) {
+  static Future<RawSocket> defaultSocketFactory(String host, int port, Duration timeout, {bool isUnixSocket = false}) {
     if (isUnixSocket) {
-      return RawSocket.connect(
-          InternetAddress(host, type: InternetAddressType.unix), port,
-          timeout: timeout);
+      return RawSocket.connect(InternetAddress(host, type: InternetAddressType.unix), port, timeout: timeout);
     } else {
       return RawSocket.connect(host, port, timeout: timeout);
     }
@@ -85,8 +78,7 @@ class BufferedSocket {
     bool isUnixSocket = false,
   }) async {
     RawSocket socket;
-    socket =
-        await socketFactory(host, port, timeout, isUnixSocket: isUnixSocket);
+    socket = await socketFactory(host, port, timeout, isUnixSocket: isUnixSocket);
     if (!isUnixSocket) {
       socket.setOption(SocketOption.tcpNoDelay, true);
     }
@@ -99,22 +91,17 @@ class BufferedSocket {
     }
 
     if (event == RawSocketEvent.read) {
-      log.fine('READ data');
       if (_readingBuffer == null) {
-        log.fine('READ data: no buffer');
         onDataReady?.call();
       } else {
         _readBuffer();
       }
     } else if (event == RawSocketEvent.readClosed) {
-      log.fine('READ_CLOSED');
       if (onClosed != null) {
         onClosed!();
       }
     } else if (event == RawSocketEvent.closed) {
-      log.fine('CLOSED');
     } else if (event == RawSocketEvent.write) {
-      log.fine('WRITE data');
       if (_writingBuffer != null) {
         _writeBuffer();
       }
@@ -128,7 +115,6 @@ class BufferedSocket {
   }
 
   Future<Buffer> writeBufferPart(Buffer buffer, int start, int length) {
-    log.fine('writeBuffer length=${buffer.length}');
     if (_closed) {
       throw StateError('Cannot write to socket, it is closed');
     }
@@ -146,13 +132,8 @@ class BufferedSocket {
   }
 
   void _writeBuffer() {
-    log.fine('_writeBuffer offset=$_writeOffset');
-    var bytesWritten = _writingBuffer!
-        .writeToSocket(_socket, _writeOffset, _writeLength - _writeOffset);
-    log.fine('Wrote $bytesWritten bytes');
-    if (log.isLoggable(Level.FINE)) {
-      log.fine('\n${Buffer.debugChars(_writingBuffer!.list)}');
-    }
+    var bytesWritten = _writingBuffer!.writeToSocket(_socket, _writeOffset, _writeLength - _writeOffset);
+    if (log.isLoggable(Level.FINE)) {}
     _writeOffset += bytesWritten;
     if (_writeOffset == _writeLength) {
       _writeCompleter.complete(_writingBuffer);
@@ -169,7 +150,6 @@ class BufferedSocket {
   /// onDataReady is called, in which case onDataReady will not be called when data arrives,
   /// and the read will start instead.
   Future<Buffer> readBuffer(Buffer buffer) {
-    log.fine('readBuffer, length=${buffer.length}');
     if (_closed) {
       throw StateError('Cannot read from socket, it is closed');
     }
@@ -181,7 +161,6 @@ class BufferedSocket {
     _readCompleter = Completer<Buffer>();
 
     if (_socket.available() > 0) {
-      log.fine('readBuffer, data already ready');
       _readBuffer();
     }
 
@@ -189,12 +168,8 @@ class BufferedSocket {
   }
 
   void _readBuffer() {
-    var bytesRead = _readingBuffer!
-        .readFromSocket(_socket, _readingBuffer!.length - _readOffset);
-    log.fine('read $bytesRead bytes');
-    if (log.isLoggable(Level.FINE)) {
-      log.fine('\n${Buffer.debugChars(_readingBuffer!.list)}');
-    }
+    var bytesRead = _readingBuffer!.readFromSocket(_socket, _readingBuffer!.length - _readOffset);
+    if (log.isLoggable(Level.FINE)) {}
     _readOffset += bytesRead;
     if (_readOffset == _readingBuffer!.length) {
       _readCompleter.complete(_readingBuffer);
@@ -208,14 +183,10 @@ class BufferedSocket {
   }
 
   Future startSSL() async {
-    log.fine('Securing socket');
-    var socket = await RawSecureSocket.secure(_socket,
-        subscription: _subscription, onBadCertificate: (cert) => true);
-    log.fine('Socket is secure');
+    var socket = await RawSecureSocket.secure(_socket, subscription: _subscription, onBadCertificate: (cert) => true);
     _socket = socket;
     _socket.setOption(SocketOption.tcpNoDelay, true);
-    _subscription = _socket.listen(_onData,
-        onError: _onSocketError, onDone: _onSocketDone, cancelOnError: true);
+    _subscription = _socket.listen(_onData, onError: _onSocketError, onDone: _onSocketDone, cancelOnError: true);
     _socket.writeEventsEnabled = true;
     _socket.readEventsEnabled = true;
   }

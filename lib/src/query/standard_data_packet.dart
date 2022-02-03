@@ -24,7 +24,6 @@ class StandardDataPacket extends ResultRow {
     for (var i = 0; i < fieldPackets.length; i++) {
       var field = fieldPackets[i];
 
-      log.fine('$i: ${field.name}');
       values![i] = readField(field, buffer);
       fields[field.name!] = values![i];
     }

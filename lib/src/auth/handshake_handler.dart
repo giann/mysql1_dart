@@ -61,8 +61,7 @@ class HandshakeHandler extends Handler {
   bool useCompression = false;
   bool useSSL = false;
 
-  HandshakeHandler(
-      this._user, this._password, this._maxPacketSize, this._characterSet,
+  HandshakeHandler(this._user, this._password, this._maxPacketSize, this._characterSet,
       [String? db, bool useCompression = false, bool useSSL = false])
       : _db = db,
         useCompression = useCompression,
@@ -98,13 +97,11 @@ class HandshakeHandler extends Handler {
       scrambleLength = response.readByte();
       response.skip(10);
       if (serverCapabilities & CLIENT_SECURE_CONNECTION > 0) {
-        var scrambleBuffer2 =
-            response.readList(math.max(13, scrambleLength! - 8) - 1);
+        var scrambleBuffer2 = response.readList(math.max(13, scrambleLength! - 8) - 1);
 
         // read null-terminator
         response.readByte();
-        scrambleBuffer =
-            List<int>.from([...scrambleBuffer1, ...scrambleBuffer2]);
+        scrambleBuffer = List<int>.from([...scrambleBuffer1, ...scrambleBuffer2]);
       } else {
         scrambleBuffer = scrambleBuffer1;
       }
@@ -150,14 +147,12 @@ class HandshakeHandler extends Handler {
     }
 
     if (useCompression && (serverCapabilities & CLIENT_COMPRESS) != 0) {
-      log.shout('Compression enabled');
       clientFlags |= CLIENT_COMPRESS;
     } else {
       useCompression = false;
     }
 
     if (useSSL && (serverCapabilities & CLIENT_SSL) != 0) {
-      log.shout('SSL enabled');
       clientFlags |= CLIENT_SSL | CLIENT_SECURE_CONNECTION;
     } else {
       useSSL = false;
@@ -182,7 +177,7 @@ class HandshakeHandler extends Handler {
     }
 
     return HandlerResponse(
-        nextHandler: AuthHandler(_user, _password, _db, scrambleBuffer,
-            clientFlags, _maxPacketSize, _characterSet, _authPlugin));
+        nextHandler: AuthHandler(
+            _user, _password, _db, scrambleBuffer, clientFlags, _maxPacketSize, _characterSet, _authPlugin));
   }
 }
